@@ -16,7 +16,8 @@ class ReviewAssignment extends Model
     protected $fillable = [
         'paper_id',
         'reviewer_id',
-        'status', // e.g. 'pending', 'accepted', 'rejected', 'completed'
+        'status', 
+        // e.g. 'pending', 'accepted', 'rejected', 'completed'
         // Add other relevant fields here
     ];
 

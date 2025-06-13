@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Login | Ai24')
+@section('title', 'Login')
 
 @push('styles')
 <style>

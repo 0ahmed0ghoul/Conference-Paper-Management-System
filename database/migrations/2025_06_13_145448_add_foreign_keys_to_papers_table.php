@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddTimestampsToReviewsTable extends Migration
+return new class extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,8 @@ class AddTimestampsToReviewsTable extends Migration
      */
     public function up()
     {
-        Schema::table('reviews', function (Blueprint $table) {
-            $table->timestamps(); // Adds created_at and updated_at
+        Schema::table('papers', function (Blueprint $table) {
+            $table->foreign(['author_id'])->references(['id'])->on('users')->onDelete('CASCADE');
         });
     }
 
@@ -25,8 +25,8 @@ class AddTimestampsToReviewsTable extends Migration
      */
     public function down()
     {
-        Schema::table('reviews', function (Blueprint $table) {
-            //
+        Schema::table('papers', function (Blueprint $table) {
+            $table->dropForeign('papers_author_id_foreign');
         });
     }
-}
+};

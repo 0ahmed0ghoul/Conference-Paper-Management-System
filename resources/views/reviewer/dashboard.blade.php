@@ -1,121 +1,120 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold text-primary">Your Paper Assignments</h2>
-        <div class="badge bg-light text-dark rounded-pill p-2">
-            <i class="bi bi-inbox-fill me-2"></i>
+<div class="reviewer-dashboard">
+    <div class="dashboard-header">
+        <h2>Your Paper Assignments</h2>
+        <div class="active-badge">
+            <i class="bi bi-inbox-fill"></i>
             {{ $assignments->whereIn('status', ['pending', 'accepted'])->count() }} Active
         </div>
     </div>
 
     <!-- Flash Messages -->
     @if (session('success'))
-        <div class="alert alert-success alert-dismissible fade show shadow-sm">
-            <i class="bi bi-check-circle-fill me-2"></i>
+        <div class="alert-message success">
+            <i class="bi bi-check-circle-fill"></i>
             {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <button class="close-btn">&times;</button>
         </div>
     @endif
     @if (session('error'))
-        <div class="alert alert-danger alert-dismissible fade show shadow-sm">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <div class="alert-message error">
+            <i class="bi bi-exclamation-triangle-fill"></i>
             {{ session('error') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <button class="close-btn">&times;</button>
         </div>
     @endif
 
     @if($assignments->isEmpty())
-        <div class="card shadow-sm border-0">
-            <div class="card-body text-center py-5">
-                <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
-                <h5 class="mt-3 text-muted">No paper assignments at the moment</h5>
-                <p class="text-muted">Check back later for new review requests</p>
-            </div>
+        <div class="empty-state">
+            <i class="bi bi-inbox"></i>
+            <h5>No paper assignments at the moment</h5>
+            <p>Check back later for new review requests</p>
         </div>
     @else
         <!-- Active Assignments -->
-        <div class="assignment-container">
+        <div class="assignments-grid">
             @foreach ($assignments->whereIn('status', ['pending', 'accepted']) as $assignment)
-                <div class="card mb-4 shadow-sm border-0 assignment-card" id="assignment-{{ $assignment->id }}">
-                    <div class="card-header bg-white d-flex justify-content-between align-items-center border-bottom">
-                        <div>
-                            <h5 class="mb-1 fw-bold text-dark">{{ $assignment->paper->title }}</h5>
-                            <div class="d-flex align-items-center">
-                                <span class="badge bg-light text-dark rounded-pill me-2">
-                                    <i class="bi bi-person-fill me-1"></i>
+                <div class="assignment-card" id="assignment-{{ $assignment->id }}">
+                    <div class="card-header">
+                        <div class="paper-info">
+                            <h3>{{ $assignment->paper->title }}</h3>
+                            <div class="meta-tags">
+                                <span class="author-tag">
+                                    <i class="bi bi-person-fill"></i>
                                     {{ $assignment->paper->author->name }}
                                 </span>
-                                <span class="badge bg-light text-dark rounded-pill">
-                                    <i class="bi bi-calendar me-1"></i>
+                                <span class="date-tag">
+                                    <i class="bi bi-calendar"></i>
                                     {{ $assignment->created_at->format('M d, Y') }}
                                 </span>
                             </div>
                         </div>
-                        <div>
+                        <div class="status-badge">
                             @if($assignment->status === 'pending')
-                                <span class="badge bg-warning bg-opacity-15 text-warning rounded-pill px-3 py-2"  style="color: black;">
-                                    <i class="bi bi-hourglass-split me-1" ></i> Pending
+                                <span class="pending">
+                                    <i class="bi bi-hourglass-split"></i> Pending
                                 </span>
                             @elseif($assignment->status === 'accepted')
-                                <span class="badge bg-success bg-opacity-15 text-success rounded-pill px-3 py-2">
-                                    <i class="bi bi-check-circle me-1"></i> Accepted
+                                <span class="accepted">
+                                    <i class="bi bi-check-circle"></i> Accepted
                                 </span>
                             @endif
                         </div>
                     </div>
 
-                    <div class="card-body">
-                        <h6 class="fw-bold text-secondary mb-3">ABSTRACT</h6>
-                        <div class="abstract-container bg-light bg-opacity-10 p-3 rounded-2 mb-4" style="max-height: 150px; overflow-y: auto;">
-                            <p class="mb-0 text-dark">{{ $assignment->paper->abstract }}</p>
+                    <div class="card-content">
+                        <h4>ABSTRACT</h4>
+                        <div class="abstract-container">
+                            <p>{{ $assignment->paper->abstract }}</p>
                         </div>
-
                         @if($assignment->status === 'pending')
-                            <div class="d-flex gap-3">
-                                <form action="{{ route('reviewer.accept', $assignment->id) }}" method="POST" class="flex-grow-1">
+                        <div class="download-section">
+                            <a href="{{ route('reviewer.downloadPaper', $assignment->paper) }}" class="download-btn">
+                                <i class="bi bi-download"></i> Download Paper
+                            </a>
+                        </div>
+                            <div class="action-buttons">
+                                <form action="{{ route('reviewer.accept', $assignment->id) }}" method="POST">
                                     @csrf
-                                    <button type="submit" class="btn btn-success rounded-pill w-100 py-2 fw-bold">
-                                        <i class="bi bi-check-circle me-2"></i> Accept Paper
+                                    <button type="submit" class="accept-btn">
+                                        <i class="bi bi-check-circle"></i> Accept Paper
                                     </button>
                                 </form>
-                                <form action="{{ route('reviewer.reject', $assignment->id) }}" method="POST" class="flex-grow-1">
+                                <form action="{{ route('reviewer.reject', $assignment->id) }}" method="POST">
                                     @csrf
-                                    <button type="submit" class="btn btn-outline-danger rounded-pill w-100 py-2 fw-bold">
-                                        <i class="bi bi-x-circle me-2"></i> Decline
+                                    <button type="submit" class="reject-btn">
+                                        <i class="bi bi-x-circle"></i> Decline
                                     </button>
                                 </form>
                             </div>
                         @elseif($assignment->status === 'accepted')
-                            <form method="POST" action="{{ route('reviewer.submitReview', $assignment->id) }}" class="needs-validation" novalidate>
+                            <form method="POST" action="{{ route('reviewer.submitReview', $assignment->id) }}" class="review-form">
                                 @csrf
                                 <input type="hidden" name="paper_id" value="{{ $assignment->paper_id }}">
 
-                                <div class="row g-3 mb-4">
-                                    <div class="col-md-4">
-                                        <label for="score" class="form-label fw-bold text-secondary">Rating</label>
-                                        <select name="score" class="form-select rounded-pill py-2" required>
-                                            <option value="">Select rating...</option>
-                                            <option value="1">★ Poor</option>
-                                            <option value="2">★★ Fair</option>
-                                            <option value="3" selected>★★★ Good</option>
-                                            <option value="4">★★★★ Very Good</option>
-                                            <option value="5">★★★★★ Excellent</option>
-                                        </select>
-                                    </div>
+                                <div class="form-group">
+                                    <label for="score">Rating</label>
+                                    <select name="score" required>
+                                        <option value="">Select rating...</option>
+                                        <option value="1">★ Poor</option>
+                                        <option value="2">★★ Fair</option>
+                                        <option value="3" selected>★★★ Good</option>
+                                        <option value="4">★★★★ Very Good</option>
+                                        <option value="5">★★★★★ Excellent</option>
+                                    </select>
                                 </div>
 
-                                <div class="mb-4">
-                                    <label for="comments" class="form-label fw-bold text-secondary">Review Comments</label>
-                                    <textarea name="comments" class="form-control rounded-3 p-3" rows="5" required
+                                <div class="form-group">
+                                    <label for="comments">Review Comments</label>
+                                    <textarea name="comments" rows="5" required
                                               minlength="20" maxlength="2000"
-                                              placeholder="Please provide detailed feedback (20-2000 characters)"
-                                              style="resize: none;"></textarea>
+                                              placeholder="Please provide detailed feedback (20-2000 characters)"></textarea>
                                 </div>
 
-                                <button type="submit" class="btn btn-primary rounded-pill w-100 py-2 fw-bold">
-                                    <i class="bi bi-send-fill me-2"></i> Submit Review
+                                <button type="submit" class="submit-btn">
+                                    <i class="bi bi-send-fill"></i> Submit Review
                                 </button>
                             </form>
                         @endif
@@ -123,98 +122,406 @@
                 </div>
             @endforeach
         </div>
-
     @endif
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Enhanced assignment removal with animation
+    // Close alert buttons
+    document.querySelectorAll('.close-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            this.parentElement.style.opacity = '0';
+            setTimeout(() => this.parentElement.remove(), 300);
+        });
+    });
+
+    // Assignment removal animation
     const assignmentId = {{ session('assignment_id') ?? 'null' }};
     if (assignmentId) {
         const card = document.getElementById('assignment-' + assignmentId);
         if (card) {
-            // Animate removal
             card.style.transition = 'all 0.4s ease';
             card.style.transform = 'translateX(-100%)';
             card.style.opacity = '0';
             card.style.marginBottom = '0';
             card.style.height = card.offsetHeight + 'px';
             
-            // Trigger reflow
-            void card.offsetHeight;
-            
-            // Animate collapse
-            card.style.height = '0';
-            card.style.overflow = 'hidden';
-            card.style.marginBottom = '0';
-            card.style.paddingTop = '0';
-            card.style.paddingBottom = '0';
-            card.style.border = '0';
-            
-            // Remove after animation
             setTimeout(() => {
-                card.remove();
+                card.style.height = '0';
+                card.style.overflow = 'hidden';
+                card.style.marginBottom = '0';
+                card.style.paddingTop = '0';
+                card.style.paddingBottom = '0';
+                card.style.border = '0';
                 
-                // Show empty state if needed
-                if (document.querySelectorAll('.assignment-card').length === 0) {
-                    const container = document.querySelector('.assignment-container');
-                    const emptyState = `
-                        <div class="card shadow-sm border-0">
-                            <div class="card-body text-center py-5">
-                                <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
-                                <h5 class="mt-3 text-success">All caught up!</h5>
-                                <p class="text-muted">You've completed all active assignments</p>
+                setTimeout(() => {
+                    card.remove();
+                    if (document.querySelectorAll('.assignment-card').length === 0) {
+                        const container = document.querySelector('.assignments-grid');
+                        container.innerHTML = `
+                            <div class="empty-state completed">
+                                <i class="bi bi-check-circle"></i>
+                                <h5>All caught up!</h5>
+                                <p>You've completed all active assignments</p>
                             </div>
-                        </div>
-                    `;
-                    container.innerHTML = emptyState;
-                }
-            }, 400);
+                        `;
+                    }
+                }, 400);
+            }, 10);
         }
     }
 
-    // Bootstrap form validation
-    (() => {
-        'use strict'
-        const forms = document.querySelectorAll('.needs-validation')
-        
-        Array.from(forms).forEach(form => {
-            form.addEventListener('submit', event => {
-                if (!form.checkValidity()) {
-                    event.preventDefault()
-                    event.stopPropagation()
-                }
-                
-                form.classList.add('was-validated')
-            }, false)
-        })
-    })()
+    // Form validation
+    document.querySelectorAll('.review-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            if (!this.checkValidity()) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.classList.add('was-validated');
+            }
+        });
+    });
 });
 </script>
 
 <style>
-    .assignment-card {
-        transition: all 0.3s ease;
+/* Base Styles */
+.reviewer-dashboard {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.dashboard-header h2 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0;
+}
+
+/* Badges & Tags */
+.active-badge {
+    background-color: #f8f9fa;
+    color: #212529;
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.meta-tags {
+    display: flex;
+    gap: 0.8rem;
+    margin-top: 0.5rem;
+}
+
+.author-tag, .date-tag {
+    background-color: #f0f2f5;
+    padding: 0.3rem 0.8rem;
+    border-radius: 2rem;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+/* Alert Messages */
+.alert-message {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    position: relative;
+    transition: opacity 0.3s ease;
+}
+
+.alert-message.success {
+    background-color: #e6f7ee;
+    color: #0d6832;
+}
+
+.alert-message.error {
+    background-color: #fde8e8;
+    color: #c81e1e;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    margin-left: auto;
+    color: inherit;
+}
+
+/* Assignment Card */
+.assignment-card {
+    background: white;
+    border-radius: 0.8rem;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    width: 100%;
+}
+
+.assignment-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.12);
+}
+
+.card-header {
+    padding: 1.2rem 1.5rem;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+}
+
+.paper-info h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0;
+    color: #2c3e50;
+}
+
+.status-badge span {
+    padding: 0.4rem 1rem;
+    border-radius: 2rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.status-badge .pending {
+    background-color: rgba(255, 193, 7, 0.15);
+    color: #856404;
+}
+
+.status-badge .accepted {
+    background-color: rgba(40, 167, 69, 0.15);
+    color: #155724;
+}
+
+.card-content {
+    padding: 1.5rem;
+}
+
+.card-content h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #6c757d;
+    margin-bottom: 0.8rem;
+}
+
+/* Abstract Container */
+.abstract-container {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    max-height: 150px;
+    overflow-y: auto;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+.abstract-container p {
+    margin: 0;
+    color: #495057;
+}
+
+.abstract-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.abstract-container::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.05);
+    border-radius: 10px;
+}
+
+.abstract-container::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.1);
+    border-radius: 10px;
+}
+
+/* Buttons */
+.download-btn, .accept-btn, .reject-btn, .submit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.5rem;
+    border-radius: 2rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    font-size: 0.95rem;
+}
+
+.download-section {
+    margin-bottom: 1.5rem;
+    width: 100%;
+}
+
+.download-btn {
+    background-color: transparent;
+    border: 1px solid #3490dc;
+    color: #3490dc;
+    width: 100%;
+
+}
+
+.download-btn:hover {
+    background-color: #f0f7ff;
+}
+
+.action-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.accept-btn {
+    background-color: #28a745;
+    color: white;
+    width: 100%;
+
+}
+
+.accept-btn:hover {
+    background-color: #218838;
+}
+
+.reject-btn {
+    background-color: transparent;
+    border: 1px solid #dc3545;
+    color: #dc3545;
+    width: 100%;
+
+}
+
+.reject-btn:hover {
+    background-color: #fff0f0;
+}
+
+.submit-btn {
+    background-color: #007bff;
+    color: white;
+    width: 100%;
+    padding: 0.8rem;
+}
+
+.submit-btn:hover {
+    background-color: #0069d9;
+}
+
+/* Form Elements */
+.review-form {
+    margin-top: 1rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #6c757d;
+    font-size: 0.95rem;
+}
+
+.form-group select, .form-group textarea {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1px solid #ced4da;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.form-group select:focus, .form-group textarea:focus {
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.form-group textarea {
+    min-height: 150px;
+    resize: vertical;
+}
+
+/* Empty States */
+.empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    background: white;
+    border-radius: 0.8rem;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+}
+
+.empty-state i {
+    font-size: 3rem;
+    color: #adb5bd;
+    margin-bottom: 1rem;
+}
+
+.empty-state.completed i {
+    color: #28a745;
+}
+
+.empty-state h5 {
+    font-size: 1.3rem;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: #6c757d;
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
     }
-    .assignment-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 0.5rem 1.25rem rgba(0, 0, 0, 0.1) !important;
+    
+    .action-buttons {
+        grid-template-columns: 1fr;
     }
-    .abstract-container::-webkit-scrollbar {
-        width: 6px;
+    
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
     }
-    .abstract-container::-webkit-scrollbar-track {
-        background: rgba(0,0,0,0.05);
-        border-radius: 10px;
+    
+    .status-badge {
+        align-self: flex-end;
     }
-    .abstract-container::-webkit-scrollbar-thumb {
-        background: rgba(0,0,0,0.1);
-        border-radius: 10px;
+    
+    .assignments-container {
+        padding: 0 1rem;
     }
-    .form-control:focus, .form-select:focus {
-        border-color: #86b7fe;
-        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
-    }
+}
 </style>
 @endsection

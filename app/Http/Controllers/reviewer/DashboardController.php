@@ -8,6 +8,8 @@ use App\Models\Review;
 use App\Models\Paper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class DashboardController extends Controller
 {
@@ -97,5 +99,26 @@ class DashboardController extends Controller
             ->get();
 
         return view('reviewer.reviews', compact('reviews'));
+    }
+    public function downloadPaper(Paper $paper)
+    {
+        // Check if the reviewer is assigned to this paper
+        $isAssigned = PaperAssignment::where('paper_id', $paper->id)
+            ->where('reviewer_id', auth()->id())
+            ->exists();
+    
+        if (!$isAssigned) {
+            abort(403, 'You are not authorized to download this paper');
+        }
+    
+        // Check if file exists and user has permission to download
+        if (!Storage::disk('public')->exists($paper->file_path)) {
+            abort(404, 'File not found');
+        }
+    
+        return Storage::disk('public')->download(
+            $paper->file_path,
+            Str::slug($paper->title) . '.' . pathinfo($paper->file_path, PATHINFO_EXTENSION)
+        );
     }
 }

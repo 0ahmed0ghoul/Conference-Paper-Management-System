@@ -61,6 +61,7 @@ Route::middleware('auth')->group(function () {
             Route::post('/reviews/{assignment}', [ReviewerDashboardController::class, 'submitReview'])->name('reviewer.submitReview');
             Route::post('/assignments/{assignment}/accept', [ReviewerDashboardController::class, 'accept'])->name('reviewer.accept');
             Route::post('/assignments/{assignment}/reject', [ReviewerDashboardController::class, 'reject'])->name('reviewer.reject');
+            Route::get('/download-paper/{paper}', [ReviewerDashboardController::class, 'downloadPaper'])->name('reviewer.downloadPaper');
         });
 
 });
